@@ -20,7 +20,6 @@ use Cake\Network\Exception\InternalErrorException;
 use Cake\Network\Exception\ForbiddenException;
 use Cake\Routing\Router;
 use Cake\Controller\Component\CookieComponent;
-use Cake\Utility\Security;
 use Cake\I18n\Time;
 
 /**
@@ -68,9 +67,13 @@ class AppController extends Controller
                 'controller' => 'Users',
                 'action' => 'login'
             ],
+            'logoutRedirect' => [
+                'controller' => 'Users',
+                'action' => 'login'
+            ],
              // Si pas autorisé, on renvoit sur la page précédente
             'authError' => false,
-            "loginRedirect" => $this->referer(),
+            "loginRedirect" => false,
             'unauthorizedRedirect' => false,
         ]);
         

@@ -71,7 +71,7 @@ class UsersTable extends Table
         $validator
             ->integer('id')
             ->allowEmpty('id', 'create');
-            
+
         $validator
             ->email('email')
             ->requirePresence('email', 'create')
@@ -88,22 +88,19 @@ class UsersTable extends Table
         $validator
             ->scalar('password')
             ->maxLength('password', 50)
-            ->minLength('password', 8, "Password must be at least 8 characters in length.")
-            ->requirePresence('password', 'create')
-            ->notEmpty('password')
-            ->sameAs('password2','password','Passwords not equal.');
+            ->minLength('password', 8, "Le mot de passe doit contenir au moins 8 caractères.")
+            ->notEmpty('password');
         $validator
             ->scalar('new_password')
             ->allowEmpty('new_password')
             ->maxLength('new_password', 50)
-            ->minLength('new_password', 8, "Password must be at least 8 characters in length.")
-            ->sameAs('new_password2','new_password','Passwords not equal.')
-            ->allowEmpty('new_password2');
+            ->minLength('new_password', 8, "Le mot de passe doit contenir au moins 8 caractères.")
+            ->sameAs('password','new_password','Les mots de passe doivent être identiques.')
+            ->allowEmpty('new_password');
 
         $validator
             ->scalar('token')
             ->maxLength('token', 255)
-            ->requirePresence('token', 'create')
             ->notEmpty('token');
 
         $validator
@@ -134,18 +131,6 @@ class UsersTable extends Table
         $validator
             ->numeric('archived')
             ->allowEmpty('archived');
-            
-        $validator->provider('upload', \Josegonzalez\Upload\Validation\UploadValidation::class);
-        $validator->add('photo', 'fileBelowMaxSize', [
-            'rule' => ['isBelowMaxSize', 200000],
-            'message' => 'This file is too large',
-            'provider' => 'upload'
-        ]);
-
-        $validator->add('photo', 'mimeType', [
-            'rule' => ['mimeType', ['image/gif', 'image/png', 'image/jpg', 'image/jpeg']],
-            'message' => 'Please only upload images (gif, png, jpg).'
-        ]);
         
 
         return $validator;
@@ -160,7 +145,7 @@ class UsersTable extends Table
      */
     public function buildRules(RulesChecker $rules)
     {
-        $rules->add($rules->isUnique(['email']));
+        $rules->add($rules->isUnique(['email'], 'Cette adresse email est déjà enregistrée.'));
         $rules->add($rules->existsIn(['role_id'], 'Roles'));
         $rules->add($rules->existsIn(['photo_id'], 'Photos'));
 

@@ -14,8 +14,11 @@
                     <br>
                     <?= $this->Form->create($user); ?>
                         <div class="form-group">
-                            <label class="form-label">Email</label>
+                            <label class="email">Email</label>
                             <input id="email" class="form-control" placeholder="Email" name="email" type="email" required>
+                        </div>
+                        <div class="form-group">
+                            <a href="<?= $this->Url->build(['controller' => 'Users', 'action' => 'login']); ?>" class="utils__link--blue utils__link--underlined">Revenir à l'écran de connexion</a>
                         </div>
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary mr-3">Récupérer</button>

@@ -24,15 +24,35 @@
 .footer {
     padding: 2.3rem 2.3rem 2.3rem;
 }
+
+
+  
+.card {
+    min-height: 45rem;
+}
 /* MENU */
 .menu-left__logo{
     background:white;
 }
+
 body.config--horizontal .menu-left__list--root > li.menu-left__item--active > a{
     border-left:0;
 }
+/* TOPBAR */
 
-/* BODY */
-.card{
-    min-height: 45rem;
+.top-bar__search input{
+    min-width:30rem;
 }
+/* BODY */
+@media (max-width: 768px) {
+    .menu-left__logo img{
+        max-width:70%;
+    }
+    .top-bar__search input{
+        min-width:20rem;
+    }
+    .top-bar__left .top-bar__item:last-child{
+        margin-left:1rem;
+    }
+}
+

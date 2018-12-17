@@ -9,9 +9,9 @@ Pour vous connecter, allez sur :
     Voici vos identifiants : 
     <code>
         <br>
-        - Email : <strong>$email</strong>
+        - Email : <strong><?= $email ?></strong>
         <br>
-        - Mot de passe : <strong>$password</strong>
+        - Mot de passe : <strong><?= $password ?></strong>
     </code>
 </p>
 <p>

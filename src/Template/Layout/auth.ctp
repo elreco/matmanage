@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <?= $this->fetch('meta') ?>
-    <title><?= $title ?> - AEMA
+    <title><?= $title ?> — AEMA
     </title>
     <link href="<?= $this->request->webroot ?>img/favicon.png" rel="shortcut icon">
     <link href="https://fonts.googleapis.com/css?family=Nunito+Sans:400,400i,700,700i" rel="stylesheet">
@@ -57,7 +57,7 @@
             <div class="row">
                 <div class="col-lg-12">
                     <div class="login__header__logo">
-                        <a href="javascript: history.back();">
+                        <a href="<?= $this->Url->build(['controller' => 'Users', 'action' => 'login']) ?>">
                             <img src="<?= $this->request->webroot ?>img/Logo-Agence.png" alt="Logo Ecole">
                             <a href="javascript: void(0);" class="btn btn-sm btn-outline ml-3 random-bg-image" data-img="1">Changer le fond d'écran</a>
                         </a>

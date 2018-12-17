@@ -13,6 +13,7 @@ use Cake\Database\Expression\QueryExpression;
 use Cake\View\Helper\TextHelper;
 use Cake\Network\Exception\NotFoundException;
 use Cake\Auth\DefaultPasswordHasher;
+use Cake\Network\Exception\SocketException;
 /**
  * Users Controller
  *
@@ -25,16 +26,16 @@ class UsersController extends AppController
     {
         parent::initialize();
         // ARRAY CONTENANT LES ACTIONS
-        $auth_allow = ['login', 'add'];
+        $auth_allow = ['login', 'forgotPassword', 'recoverPassword', 'password', 'logout'];
         $this->Auth->allow($auth_allow);
         // REDIRIGER L'UTILISATEUR SI IL EST CONNECTE ET NON AUTORISE A ACCEDER
         if ($this->Auth->user()) 
         {
             if (in_array($this->request->action, $auth_allow)) {
-                return $this->redirect(['controller' => 'Leagues','action' => 'index']);        
+                return $this->redirect(['controller' => 'Global','action' => 'index']);        
             }
 
-        }
+        } 
         if(empty($this->Auth->user()) && !empty($this->Cookie->read('connects'))){
             $this->autoLogin($this->request->here(false));
         }
@@ -74,7 +75,7 @@ class UsersController extends AppController
                 $this->setAutoLogin($newuser['id']);
 
                 $this->Flash->success(__("Vous êtes connecté !"));
-                    //return $this->redirect(['action' => 'tuto']);
+                return $this->redirect(['controller' => 'global','action' => 'index']);
                 
             }else{
                 $this->Flash->error(__("Email ou mot de passe <strong>incorrect</strong> ! Veuillez réessayer."));
@@ -93,7 +94,7 @@ class UsersController extends AppController
             $this->Cookie->config([
                 'expires' => '+10 years',
                 'httpOnly' => true,
-                'domain' => 'localhost'
+                'domain' => 'localhost/matmanage'
             ]);
             $this->Cookie->write('connects', $hash);
             $user->hash = $hash;
@@ -103,11 +104,12 @@ class UsersController extends AppController
                 return false;
             }
         }else{
+            
             $this->Cookie->config('path', '/');
             $this->Cookie->config([
                 'expires' => '+10 years',
                 'httpOnly' => true,
-                'domain' => 'localhost'
+                'domain' => 'localhost/matmanage'
             ]);
             $this->Cookie->write('connects', $user->hash);
             return true;
@@ -124,7 +126,7 @@ class UsersController extends AppController
 
                 return $this->redirect($url);
             }else{
-                return $this->redirect(['controller'=>'Leagues','action' => 'index']);
+                return $this->redirect(['controller'=>'Global','action' => 'index']);
             }
             
         } else {
@@ -214,17 +216,23 @@ class UsersController extends AppController
     public function add()
     {
         $this->viewBuilder()->setLayout('default');
+        // ENTITE UTILISATEUR
         $user = $this->Users->newEntity();
         $this->set('user', $user);
+        // ALLER CHERCHER LES ROLES
+        $roles = $this->Users->Roles->find('all');
+        $this->set('roles', $roles);
          // TITRE DE LA PAGE
          $this->set('title', "Ajouter un élève");
         if ($this->request->is('post')) {
-
+            
             $user = $this->Users->patchEntity($user, $this->request->getData());
             // ON REGARDE SI IL Y A DES ERREURS
-            if ($user->errors()) {
+            if ($user->errors()){
+                
                 // validation de l'entity a échouée.
                 $error_msg = $this->Global->formatErrors($user->errors());
+                die(var_dump($error_msg));
                 if(!empty($error_msg)){
                     $this->Flash->error(
                         __("<strong>Erreur !</strong><br>Merci de vérifier les informations suivantes :".implode("", $error_msg))
@@ -234,32 +242,49 @@ class UsersController extends AppController
             }
             // LOWER CASE EMAIL
             $user->email = strtolower($this->request->getData('email'));
+            //FIRST LETTER EN CAPITALE POUR LE PRENOM
+            $user->firstname = ucwords(strtolower($this->request->getData('firstname')));
+            //FIRST LETTER EN CAPITALE POUR LE PRENOM
+            $user->lastname = ucwords(strtolower($this->request->getData('lastname')));
             // GENERATE TOKEN
             $user->token = bin2hex(random_bytes(20));
             // GENERATE PASSWORD
             $passwordGenerated = $this->Global->randomPassword();
             $hasher = new DefaultPasswordHasher();
             $user->password = $hasher->hash($passwordGenerated);
-
+            $user->role_id = 1;
             if ($this->Users->save($user)) {
+                
                 $email = new Email('default');
-                $email
+                $send_email = $email
                 ->transport('default')
                 ->template('default')
                 ->emailFormat('html')
                 ->to($user->email, $user->firstname . " " . $user->lastname)
                 ->subject('Un administrateur a créé votre compte')
                 ->from('noreply@le-cercle-digital.fr', 'Le Cercle digital')
-                ->viewVars(['username' => $user->firstname . " " . $user->lastname, 'token' => $user->token, 'password' => $user->passwordGenerated, 'email' => $user->email])
-                ->send();
+                ->viewVars(['username' => $user->firstname . " " . $user->lastname, 'password' => $passwordGenerated, 'email' => $user->email]);
+                
+                try {
+                    $send_email->send();
+                    // success
+                    $this->Flash->success(__("<strong>Succès !</strong><br>Vous avez bien créé le compte de <strong>" . $user->firstname . " " . $user->lastname . "</strong>."));     
+                    return $this->redirect(['action' => 'add']);
+                } catch (SocketException $exception) {
+                    // failure
+                    var_dump($exception);
+                    die();
+                    $this->Flash->error(__("Problème d'envoi de mail : <br>" . $exception->message));     
+                    return $this->redirect(['action' => 'add']);
+                }
                 // ENVOI DE L'EMAIL DE CONFIRMATION
                 //Please check your emails to activate your account
-                $this->Flash->success(__("<strong>Succès !</strong><br>Vous avez bien créé le compte de <strong>" . $user->firstname . " " . $user->lastname . "</strong>."));     
-                return $this->redirect(['action' => 'add']);
+                                    
+                
             }else{
                
                 $error_msg = $this->Global->formatErrors($user->errors());
-
+                
                 if(!empty($error_msg)){
                     $this->Flash->error(
                         __("<strong>Erreur !</strong><br>Merci de vérifier les informations suivantes :".implode("", $error_msg))
@@ -292,7 +317,7 @@ class UsersController extends AppController
                 $email
                 ->transport('default')
                 ->template('password')
-                ->subject('Recover your password')
+                ->subject('Récupération de mot de passe')
                 ->emailFormat('html')
                 ->to($user->email, $user->firstname . " " . $user->lastname)
                 ->from('noreply@le-cercle-digital', 'Le Cercle digital')
@@ -353,34 +378,26 @@ class UsersController extends AppController
                 // ERREUR 403
                 throw new ForbiddenException(__("You can't access to this section"));
             }
-            
+            $hasher = new DefaultPasswordHasher();
+            $newuser->password = $hasher->hash($this->request->getData('password'));
             if($this->Users->query()->update()->set(['password' => $newuser->password])->where(['id' => $newuser->id])->execute()){
-                $this->Flash->success(__("Your new password has been saved."));
+                $this->Flash->success(__("Votre nouveau mot de passe a été enregistré."));
                 return $this->redirect(['action' => 'login']);
             }else{
-                $this->Flash->error(__("We can't save your password."));
-                return $this->redirect(['action' => 'recoverPassword', $newuser->token, $newuser->username]);
+                $this->Flash->error(__("Nous ne pouvons pas enregistrer votre nouveau mot de passe."));
+                return $this->redirect(['action' => 'recoverPassword', $newuser->token, $newuser->email]);
             }
                 
             
         }else{
             // ERREUR
-            $error_msg = [];
-            foreach( $user->errors() as $errors){
-                if(is_array($errors)){
-                    foreach($errors as $error){
-                        $error_msg[]    = "<br> - " . $error;
-                    }
-                }else{
-                    $error_msg[]    =   "<br> - " . $errors;
-                }
-            }
+            $error_msg = $this->Global->formatErrors($newuser->errors());
 
             if(!empty($error_msg)){
                 $this->Flash->error(
-                    __("<strong>Error!</strong><br>Please fix the following error(s):".implode("", $error_msg))
+                    __("<strong>Erreur !</strong><br>Merci de vérifier les informations suivantes :".implode("", $error_msg))
                 );
-                return $this->redirect(['action' => 'recoverPassword', $newuser->token, $newuser->username]);
+                return $this->redirect(['action' => 'recoverPassword', $newuser->token, $newuser->email]);
             }
         }
         $this->autoRender = false;
@@ -388,14 +405,13 @@ class UsersController extends AppController
 
     public function logout()
     {
+        $this->autoRender = false;
         $this->Cookie->delete('connects');
         $past = time() - 86400; 
-        setcookie("connects", '', $past, "/", "localhost");
+        setcookie("connects", '', $past, "/", "localhost/matmanage");
         
-        $this->Auth->logout();
         $this->Flash->success(__("Vous êtes déconnecté."));
-
-        return $this->redirect(["action" => "login"]); 
+        return $this->redirect($this->Auth->logout());
     }
 
 }
