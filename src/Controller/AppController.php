@@ -16,6 +16,12 @@ namespace App\Controller;
 
 use Cake\Controller\Controller;
 use Cake\Event\Event;
+use Cake\Network\Exception\InternalErrorException;
+use Cake\Network\Exception\ForbiddenException;
+use Cake\Routing\Router;
+use Cake\Controller\Component\CookieComponent;
+use Cake\Utility\Security;
+use Cake\I18n\Time;
 
 /**
  * Application Controller
@@ -27,7 +33,7 @@ use Cake\Event\Event;
  */
 class AppController extends Controller
 {
-
+        
     /**
      * Initialization hook method.
      *
@@ -40,16 +46,48 @@ class AppController extends Controller
     public function initialize()
     {
         parent::initialize();
-
-        $this->loadComponent('RequestHandler', [
-            'enableBeforeRedirect' => false,
-        ]);
+        
+        $this->loadComponent('RequestHandler');
         $this->loadComponent('Flash');
+        $this->loadComponent('Cookie');
+        $this->loadComponent('Global');
+    
+        // Code existant
+        $this->loadComponent('Auth', [
+            'authenticate' => [
+                'Form' => [
+                    'fields' => [
+                        'username' => 'email',
+                        'password' => 'password'
+                    ]
+                ],
 
+                
+            ],
+            'loginAction' => [
+                'controller' => 'Users',
+                'action' => 'login'
+            ],
+             // Si pas autorisé, on renvoit sur la page précédente
+            'authError' => false,
+            "loginRedirect" => $this->referer(),
+            'unauthorizedRedirect' => false,
+        ]);
+        
         /*
-         * Enable the following component for recommended CakePHP security settings.
+         * Enable the following components for recommended CakePHP security settings.
          * see https://book.cakephp.org/3.0/en/controllers/components/security.html
          */
         //$this->loadComponent('Security');
+        //$this->loadComponent('Csrf');
     }
+    public function beforeFilter(Event $event)
+    {
+        parent::beforeFilter($event);
+        $this->set('Auth', $this->Auth);
+
+    }
+
+    public function beforeRender(Event $event) {
+    } 
 }

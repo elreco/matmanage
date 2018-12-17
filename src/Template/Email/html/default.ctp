@@ -1,20 +1,20 @@
-<?php
-/**
- * CakePHP(tm) : Rapid Development Framework (https://cakephp.org)
- * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
- *
- * Licensed under The MIT License
- * For full copyright and license information, please see the LICENSE.txt
- * Redistributions of files must retain the above copyright notice.
- *
- * @copyright     Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
- * @link          https://cakephp.org CakePHP(tm) Project
- * @since         0.10.0
- * @license       https://opensource.org/licenses/mit-license.php MIT License
- */
-
-$content = explode("\n", $content);
-
-foreach ($content as $line) :
-    echo '<p> ' . $line . "</p>\n";
-endforeach;
+<p>Bonjour <?= $username ?>, </p>
+<p>
+Nous vous avez créé un compte sur l'application de gestion du matériel audiovisuel.
+<br>
+Pour vous connecter, allez sur : 
+<a href="https://test.com">test.com/login</a> 
+</p>
+<p>
+    Voici vos identifiants : 
+    <code>
+        <br>
+        - Email : <strong>$email</strong>
+        <br>
+        - Mot de passe : <strong>$password</strong>
+    </code>
+</p>
+<p>
+Cordialement,
+Le Cercle digital
+</p>

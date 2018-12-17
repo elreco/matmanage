@@ -1,0 +1,38 @@
+/* GENERAL */
+.no-padding{
+    padding:0;
+}
+.height100{
+    height:100%;
+}
+/* HEADER */
+.login__header__logo img{
+    max-width:15rem;
+    max-height:15rem;
+}
+/* FORM */
+.form-input-icon > i {
+    margin: 0.6rem 0.15rem 0.3rem 0.76rem;
+}
+
+/* FOOTER */
+.footer__bottom {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+}
+.footer {
+    padding: 2.3rem 2.3rem 2.3rem;
+}
+/* MENU */
+.menu-left__logo{
+    background:white;
+}
+body.config--horizontal .menu-left__list--root > li.menu-left__item--active > a{
+    border-left:0;
+}
+
+/* BODY */
+.card{
+    min-height: 45rem;
+}
